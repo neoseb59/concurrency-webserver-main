@@ -12,8 +12,10 @@ int main(int argc, char *argv[])
 	int c;
 	char *root_dir = default_root;
 	int port = 10000;
+	int threads = 1;
+	int buffer_size = 1;
 
-	while ((c = getopt(argc, argv, "d:p:")) != -1)
+	while ((c = getopt(argc, argv, "d:p:t:b:")) != -1)
 		switch (c)
 		{
 		case 'd':
@@ -22,8 +24,14 @@ int main(int argc, char *argv[])
 		case 'p':
 			port = atoi(optarg);
 			break;
+		case 't':
+			threads = atoi(optarg);
+			break;
+		case 'b':
+			buffer_size = atoi(optarg);
+			break;
 		default:
-			fprintf(stderr, "usage: wserver [-d basedir] [-p port]\n");
+			fprintf(stderr, "usage: wserver [-d basedir] [-p port] [-t threads] [-b buffers]\n");
 			exit(1);
 		}
 
