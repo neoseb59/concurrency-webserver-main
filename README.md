@@ -7,11 +7,13 @@ thread; it will be your job to make the web server multi-threaded so that it
 can handle multiple requests at the same time.
 
 The goals of this project are:
+
 - To learn the basic architecture of a simple web server
 - To learn how to add concurrency to a non-concurrent system
 - To learn how to read and modify an existing code base effectively
 
 Useful reading from [OSTEP](http://ostep.org) includes:
+
 - [Intro to threads](http://pages.cs.wisc.edu/~remzi/OSTEP/threads-intro.pdf)
 - [Using locks](http://pages.cs.wisc.edu/~remzi/OSTEP/threads-intro.pdf)
 - [Producer-consumer relationships](http://pages.cs.wisc.edu/~remzi/OSTEP/threads-cv.pdf)
@@ -45,15 +47,15 @@ at once, among other features. To learn more about networks, take a networking
 class (or many!), or read [this free book](https://book.systemsapproach.org).
 
 Each piece of content on the web server is associated with a file in the
-server's file system. The simplest is *static* content, in which a client
+server's file system. The simplest is _static_ content, in which a client
 sends a request just to read a specific file from the server. Slightly more
-complex is *dynamic* content, in which a client requests that an executable
+complex is _dynamic_ content, in which a client requests that an executable
 file be run on the web server and its output returned to the client.
 Each file has a unique name known as a **URL** (**Universal Resource
 Locator**).
 
 As a simple example, let's say the client browser wants to fetch static
-content (i.e., just some file) from a web server running on some machine.  The
+content (i.e., just some file) from a web server running on some machine. The
 client might then type in the following URL to the browser:
 `http://www.cs.wisc.edu/index.html`. This URL identifies that the HTTP
 protocol is to be used, and that an HTML file in the root directory (`/`) of
@@ -76,8 +78,7 @@ arguments after the file name. For example, to just run a program (`test.cgi`)
 without any arguments, the client might use the URL
 `http://www.cs.wisc.edu/test.cgi`. To specify more arguments, the `?` and `&`
 characters are used, with the `?` character to separate the file name from the
-arguments and the `& character to separate each argument from the others.  For
-example, `http://www.cs.wisc.edu/test.cgi?x=10&y=20` can be used to send
+arguments and the `& character to separate each argument from the others. For example, `http://www.cs.wisc.edu/test.cgi?x=10&y=20` can be used to send
 multiple arguments `x` and `y` and their respective values to the program
 `test.cgi`. The program being run is called a **CGI program** (short for
 [Common Gateway
@@ -90,8 +91,8 @@ variable, which the program can then parse to access these arguments.
 
 When a client (e.g., a browser) wants to fetch a file from a machine, the
 process starts by sending a machine a message. But what exactly is in the body
-of that message? These *request contents*, and the subsequent *reply
-contents*, are specified precisely by the HTTP protocol.
+of that message? These _request contents_, and the subsequent _reply
+contents_, are specified precisely by the HTTP protocol.
 
 Let's start with the request contents, sent from the web browser to the
 server. This HTTP request consists of a request line, followed by zero or more
@@ -122,13 +123,13 @@ more, isn't it?
 
 # A Basic Web Server
 
-The code for the web server is available in this repository.  You can compile
+The code for the web server is available in this repository. You can compile
 the files herein by simply typing `make`. Compile and run this basic web
 server before making any changes to it! `make clean` removes .o files and
 executables and lets you do a clean build.
 
 When you run this basic web server, you need to specify the port number that
-it will listen on; ports below number 1024 are *reserved* (see the list
+it will listen on; ports below number 1024 are _reserved_ (see the list
 [here](https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml))
 so you should specify port numbers that are greater than 1023 to avoid this
 reserved range; the max is 65535. Be wary: if running on a shared machine, you
@@ -154,9 +155,9 @@ server, it may trip an assertion in the server causing it to exit. We do not
 expect you to fix these problems (though you can, if you like, you know, for
 fun).
 
-Helper functions are provided to simplify error checking.  A wrapper calls the
+Helper functions are provided to simplify error checking. A wrapper calls the
 desired function and immediately terminate if an error occurs. The wrappers
-are found in the file `io-helper.h`); more about this below.  One should
+are found in the file `io-helper.h`); more about this below. One should
 always check error codes, even if all you do in response is exit; dropping
 errors silently is **BAD C PROGRAMMING** and should be avoided at all costs.
 
@@ -189,7 +190,7 @@ the one-thread-per-request approach is that the web server pays the overhead
 of creating a new thread on every request.
 
 Therefore, the generally preferred approach for a multi-threaded server is to
-create a fixed-size *pool* of worker threads when the web server is first
+create a fixed-size _pool_ of worker threads when the web server is first
 started. With the pool-of-threads approach, each thread is blocked until there
 is an http request for it to handle. Therefore, if there are more worker
 threads than active requests, then some of the threads will be blocked,
@@ -273,8 +274,8 @@ follows.
   time. Must be a positive integer. Note that it is not an error for more or
   less threads to be created than buffers. Default: 1.
 
-
 For example, you could run your program as:
+
 ```
 prompt> server -d . -p 8003 -t 8 -b 16
 ```
@@ -285,7 +286,7 @@ in progress (or waiting).
 
 # Source Code Overview
 
-We recommend understanding how the code that we gave you works.  We provide
+We recommend understanding how the code that we gave you works. We provide
 the following files:
 
 - [`wserver.c`](/src/wserver.c): Contains `main()` for the web server and the basic serving loop.
@@ -303,11 +304,11 @@ the following files:
   can send simultaneous requests to your server. By launching `wclient`
   multiple times, you can test how your server handles concurrent requests.
 - [`spin.c`](/src/spin.c): A simple CGI program. Basically, it spins for a fixed amount
-  of time, which you may useful in testing various aspects of your server.  
+  of time, which you may useful in testing various aspects of your server.
 - [`Makefile`](/src/Makefile): We also provide you with a sample Makefile that creates
   `wserver`, `wclient`, and `spin.cgi`. You can type **`make`** to create all of
   these programs. You can type **`make clean`** to remove the object files and the
-  executables. You can type ``make server`` to create just the server program,
+  executables. You can type `make server` to create just the server program,
   etc. As you create new files, you will need to add them to the Makefile.
 
 The best way to learn about the code is to compile it and run it. Run the
