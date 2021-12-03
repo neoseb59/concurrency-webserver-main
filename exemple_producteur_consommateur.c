@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <pthread.h>
 
+#define N 1
+
 int buffer;
 int count = 0;
 int loops = 10;
@@ -59,11 +61,11 @@ int main(int argc, char *argv[])
 {
     pthread_t pro, con;
 
-    empty = sem_open("/empty", O_CREAT, 0644, 1);
+    empty = sem_open("/empty", O_CREAT, 0644, N);
 
     full = sem_open("/full", O_CREAT, 0644, 0);
 
-    mutex = sem_open("/mutex", O_CREAT, 0644, 1);
+    mutex = sem_open("/mutex", O_CREAT, 0644, N);
 
     pthread_create(&pro, NULL, producer, NULL);
 
