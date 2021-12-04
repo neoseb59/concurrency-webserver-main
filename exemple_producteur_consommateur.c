@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-#define N 1
+#define N 10
 
 int buffer;
 int count = 0;
