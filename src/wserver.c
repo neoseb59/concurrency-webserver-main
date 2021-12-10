@@ -100,32 +100,33 @@ int dequeue(Queue *queue)
 
 void *worker_thread_function(void *queueVoid)
 {
+	Queue *queue = (Queue *)queueVoid;
+	printf("consumer: begin\n");
+
 	while (1)
 	{
-		Queue *queue = (Queue *)queueVoid;
-		printf("consumer: begin\n");
-
 		// On vérifie qu'il existe une connection à traiter et on recupère le lock
 		sem_wait(full);
-		pthread_mutex_lock(&mutex);
 
 		printf("start work\n");
 		// On récupère la première connection ajoutée (FIFO) et on la traite
 		int conn_fd = dequeue(queue);
 		printf("OK conn\n");
 		printf("conn_fd worker : %d\n", conn_fd);
+		// pthread_mutex_lock(&mutex);
 		request_handle(conn_fd);
+		// pthread_mutex_unlock(&mutex);
 		printf("Request success!\n");
 		close_or_die(conn_fd);
 
 		printf("end work\n");
 
 		// On libère le lock et on signale qu'il y a une place de plus disponible dans le buffer
-		pthread_mutex_unlock(&mutex);
 		sem_post(empty);
 
 		printf("consumer: end\n");
 	}
+
 	return NULL;
 }
 
