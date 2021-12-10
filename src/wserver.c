@@ -113,9 +113,9 @@ void *worker_thread_function(void *queueVoid)
 		int conn_fd = dequeue(queue);
 		printf("OK conn\n");
 		printf("conn_fd worker : %d\n", conn_fd);
-		// pthread_mutex_lock(&mutex);
+		pthread_mutex_lock(&mutex);
 		request_handle(conn_fd);
-		// pthread_mutex_unlock(&mutex);
+		pthread_mutex_unlock(&mutex);
 		printf("Request success!\n");
 		close_or_die(conn_fd);
 
