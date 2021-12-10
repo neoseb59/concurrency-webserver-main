@@ -9,7 +9,7 @@ char default_root[] = ".";
 
 sem_t *empty;
 sem_t *full;
-sem_t *mutex;
+pthread_mutex_t mutex;
 
 typedef struct Connection // Le nom du type de la structure
 {
@@ -24,10 +24,10 @@ typedef struct Queue
 
 Queue *initialiser()
 {
-	sem_wait(mutex);
+	// pthread_mutex_lock(&mutex);
 	Queue *queue = malloc(sizeof(*queue));
 	queue->first = NULL;
-	sem_post(mutex);
+	// pthread_mutex_unlock(&mutex);
 	return queue;
 }
 
@@ -36,6 +36,7 @@ struct main_thread_arguments
 	int threads;
 	char *root_dir;
 	int port;
+	int listen_fd;
 };
 
 struct worker_thread_arguments
@@ -45,6 +46,7 @@ struct worker_thread_arguments
 
 void add_to_queue(Queue *queue, int newConnection)
 {
+	printf("Connect start : %d\n", newConnection);
 	Connection *new = malloc(sizeof(*new)); // Alloue un espace mémoire qui servira à stocker la nouvelle connection avant de l'ajouter à la queue
 	if (queue == NULL || new == NULL)
 	{
@@ -56,6 +58,7 @@ void add_to_queue(Queue *queue, int newConnection)
 
 	if (queue->first != NULL) /* La queue n'est pas vide */
 	{
+		printf("enter queue\n");
 		/* On se positionne à la fin de la queue */
 		Connection *currentElement = queue->first;
 		while (currentElement->next != NULL)
@@ -66,8 +69,10 @@ void add_to_queue(Queue *queue, int newConnection)
 	}
 	else /* La queue est vide, notre élément est le first */
 	{
+		printf("first\n");
 		queue->first = new;
 	}
+	printf("Connect end : %d\n", newConnection);
 }
 
 int dequeue(Queue *queue)
@@ -85,6 +90,7 @@ int dequeue(Queue *queue)
 		Connection *queueElement = queue->first;
 
 		connection_id = queueElement->connection_id;
+		printf("conn id deque : %d\n", connection_id);
 		queue->first = queueElement->next;
 		free(queueElement);
 	}
@@ -94,38 +100,66 @@ int dequeue(Queue *queue)
 
 void *worker_thread_function(void *queueVoid)
 {
-	Queue *queue = (Queue *)queueVoid;
-	printf("consumer: begin\n");
+	while (1)
+	{
+		Queue *queue = (Queue *)queueVoid;
+		printf("consumer: begin\n");
 
-	// On vérifie qu'il existe une connection à traiter et on recupère le lock
-	sem_wait(full);
-	sem_wait(mutex);
+		// On vérifie qu'il existe une connection à traiter et on recupère le lock
+		sem_wait(full);
+		pthread_mutex_lock(&mutex);
 
-	// On récupère la première connection ajoutée (FIFO) et on la traite
-	int conn_fd = dequeue(queue);
-	request_handle(conn_fd);
-	close_or_die(conn_fd);
+		printf("start work\n");
+		// On récupère la première connection ajoutée (FIFO) et on la traite
+		int conn_fd = dequeue(queue);
+		printf("OK conn\n");
+		printf("conn_fd worker : %d\n", conn_fd);
+		request_handle(conn_fd);
+		printf("Request success!\n");
+		close_or_die(conn_fd);
 
-	// On libère le lock et on signale qu'il y a une place de plus disponible dans le buffer
-	sem_post(mutex);
-	sem_post(empty);
+		printf("end work\n");
 
-	printf("consumer: end\n");
+		// On libère le lock et on signale qu'il y a une place de plus disponible dans le buffer
+		pthread_mutex_unlock(&mutex);
+		sem_post(empty);
+
+		printf("consumer: end\n");
+	}
 	return NULL;
 }
 
-void create_connection(char *root_dir, int port, Queue *queue)
+void create_connection(char *root_dir, int port, int listen_fd, Queue *queue)
 {
-	// run out of this directory
-	chdir_or_die(root_dir);
-
-	// now, get to work
-	int listen_fd = open_listen_fd_or_die(port);
-
+	printf("ok\n");
 	struct sockaddr_in client_addr;
 	int client_len = sizeof(client_addr);
+	printf("ok2\n");
 	int conn_fd = accept_or_die(listen_fd, (sockaddr_t *)&client_addr, (socklen_t *)&client_len);
+	printf("ok3\n");
+	printf("conn_fd : %d\n", conn_fd);
+
+	// On vérifie que le buffer n'est pas plein et on recupère le lock
+	sem_wait(empty);
+	printf("empty ok\n");
+	int connection_id = 0;
+	while (queue->first != NULL)
+	{
+		Connection *queueElement = queue->first;
+
+		connection_id = queueElement->connection_id;
+		printf("conn id deque : %d\n", connection_id);
+		queue->first = queueElement->next;
+		free(queueElement);
+	}
+
+	pthread_mutex_lock(&mutex);
+
 	add_to_queue(queue, conn_fd);
+
+	// On libère le lock et on signale qu'il y a une nouvelle connection à traiter
+	pthread_mutex_unlock(&mutex);
+	sem_post(full);
 }
 
 void *master_thread_function(void *main_thread_argumentsVoid)
@@ -136,47 +170,31 @@ void *master_thread_function(void *main_thread_argumentsVoid)
 	int threads = argumentsMaster->threads;
 	char *root_dir = argumentsMaster->root_dir;
 	int port = argumentsMaster->port;
+	int listen_fd = argumentsMaster->listen_fd;
 
-	printf("ok\n");
 	Queue *queue = initialiser();
-	printf("ok\n");
-	// pthread_t threads_pool[threads];
-	sem_wait(mutex);
 
-	printf("producer: init threads\n");
+	// pthread_t threads_pool[threads];
 
 	struct worker_thread_arguments arguments;
 
 	arguments.queue = queue;
+
+	// pthread_mutex_lock(&mutex);
 
 	for (int i = 0; i < threads; i++)
 	{
 		pthread_t worker_thread;
 		pthread_create(&worker_thread, NULL, worker_thread_function, (void *)&arguments);
 	}
-
-	printf("producer: end threads\n");
-
-	sem_post(mutex);
-
-	
+	// pthread_mutex_unlock(&mutex);
 
 	while (1)
 	{
-		// On vérifie que le buffer n'est pas plein et on recupère le lock
-		sem_wait(empty);
-		sem_wait(mutex);
-
 		// On ajoute la nouvelle connection à la fin du buffer (FIFO)
-		create_connection(root_dir, port, (void *)&arguments);
-
-		// On libère le lock et on signale qu'il y a une nouvelle connection à traiter
-		sem_post(mutex);
-		sem_post(full);
+		create_connection(root_dir, port, listen_fd, (void *)&arguments);
 	}
-	printf("producer: put\n");
 
-	printf("producer: end\n");
 	return NULL;
 }
 
@@ -213,22 +231,33 @@ int main(int argc, char *argv[])
 
 	if (strstr(root_dir, "..") != NULL)
 	{
-		printf("Not in subtree of the server");
+		printf("Not in subtree of the server\n");
 		exit(EXIT_FAILURE);
 	}
+
+	// run out of this directory
+	chdir_or_die(root_dir);
+
+	// now, get to work
+	int listen_fd = open_listen_fd_or_die(port);
+
+	// réinitialisation des sémaphores
+	sem_unlink("/empty");
+	sem_unlink("/full");
 
 	// Création des sémaphores
 	empty = sem_open("/empty", O_CREAT, 0644, buffer_size);
 
 	full = sem_open("/full", O_CREAT, 0644, 0);
 
-	mutex = sem_open("/mutex3", O_CREAT, 0644, 1);
+	pthread_mutex_init(&mutex, NULL);
 
 	struct main_thread_arguments arguments;
 
 	arguments.threads = threads;
 	arguments.root_dir = root_dir;
 	arguments.port = port;
+	arguments.listen_fd = listen_fd;
 
 	pthread_t master_thread;
 	pthread_create(&master_thread, NULL, master_thread_function, (void *)&arguments);
