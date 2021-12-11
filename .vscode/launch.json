@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [
+        ""
+      ],
+      "stopAtEntry": true,
+      "cwd": "/Users/sebastiendancoisne/Desktop/IMT/systeme_exploitation/concurrency-webserver-main/src",
+      "environment": [],
+      "program": "/Users/sebastiendancoisne/Desktop/IMT/systeme_exploitation/concurrency-webserver-main/src/build/Debug/wserver.o",
+      "internalConsoleOptions": "openOnSessionStart",
+      "MIMode": "lldb",
+      "externalConsole": false
+    }
+  ]
+}

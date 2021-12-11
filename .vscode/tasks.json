@@ -1,0 +1,17 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"problemMatcher": [
+				"$gcc"
+			],
+			"command": "cd ./src && make clean && make",
+			"label": "C_Cpp_Runner: Run: Program",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		}
+	]
+}

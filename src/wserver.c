@@ -24,10 +24,8 @@ typedef struct Queue
 
 Queue *initialiser()
 {
-	// pthread_mutex_lock(&mutex);
 	Queue *queue = malloc(sizeof(*queue));
 	queue->first = NULL;
-	// pthread_mutex_unlock(&mutex);
 	return queue;
 }
 
@@ -44,9 +42,26 @@ struct worker_thread_arguments
 	Queue *queue;
 };
 
+void afficherFile(Queue *queue)
+{
+	if (queue == NULL)
+	{
+		exit(EXIT_FAILURE);
+	}
+
+	Connection *first = queue->first;
+
+	while (first != NULL)
+	{
+		printf("%d ", first->connection_id);
+		first = first->next;
+	}
+
+	printf("\n");
+}
+
 void add_to_queue(Queue *queue, int newConnection)
 {
-	printf("Connect start : %d\n", newConnection);
 	Connection *new = malloc(sizeof(*new)); // Alloue un espace mémoire qui servira à stocker la nouvelle connection avant de l'ajouter à la queue
 	if (queue == NULL || new == NULL)
 	{
@@ -56,9 +71,11 @@ void add_to_queue(Queue *queue, int newConnection)
 	new->connection_id = newConnection;
 	new->next = NULL;
 
+	afficherFile(queue);
+	printf("empty : %d\n", queue->first == NULL);
+
 	if (queue->first != NULL) /* La queue n'est pas vide */
 	{
-		printf("enter queue\n");
 		/* On se positionne à la fin de la queue */
 		Connection *currentElement = queue->first;
 		while (currentElement->next != NULL)
@@ -69,10 +86,9 @@ void add_to_queue(Queue *queue, int newConnection)
 	}
 	else /* La queue est vide, notre élément est le first */
 	{
-		printf("first\n");
 		queue->first = new;
 	}
-	printf("Connect end : %d\n", newConnection);
+	afficherFile(queue);
 }
 
 int dequeue(Queue *queue)
@@ -90,7 +106,6 @@ int dequeue(Queue *queue)
 		Connection *queueElement = queue->first;
 
 		connection_id = queueElement->connection_id;
-		printf("conn id deque : %d\n", connection_id);
 		queue->first = queueElement->next;
 		free(queueElement);
 	}
@@ -109,22 +124,19 @@ void *worker_thread_function(void *queueVoid)
 		sem_wait(full);
 
 		printf("start work\n");
+		afficherFile(queue);
 		// On récupère la première connection ajoutée (FIFO) et on la traite
-		int conn_fd = dequeue(queue);
-		printf("OK conn\n");
-		printf("conn_fd worker : %d\n", conn_fd);
 		pthread_mutex_lock(&mutex);
-		request_handle(conn_fd);
+		int conn_fd = dequeue(queue);
 		pthread_mutex_unlock(&mutex);
-		printf("Request success!\n");
+		request_handle(conn_fd);
+
 		close_or_die(conn_fd);
 
 		printf("end work\n");
 
 		// On libère le lock et on signale qu'il y a une place de plus disponible dans le buffer
 		sem_post(empty);
-
-		printf("consumer: end\n");
 	}
 
 	return NULL;
@@ -132,34 +144,20 @@ void *worker_thread_function(void *queueVoid)
 
 void create_connection(char *root_dir, int port, int listen_fd, Queue *queue)
 {
-	printf("ok\n");
 	struct sockaddr_in client_addr;
 	int client_len = sizeof(client_addr);
-	printf("ok2\n");
 	int conn_fd = accept_or_die(listen_fd, (sockaddr_t *)&client_addr, (socklen_t *)&client_len);
-	printf("ok3\n");
+
 	printf("conn_fd : %d\n", conn_fd);
 
 	// On vérifie que le buffer n'est pas plein et on recupère le lock
 	sem_wait(empty);
-	printf("empty ok\n");
-	int connection_id = 0;
-	while (queue->first != NULL)
-	{
-		Connection *queueElement = queue->first;
-
-		connection_id = queueElement->connection_id;
-		printf("conn id deque : %d\n", connection_id);
-		queue->first = queueElement->next;
-		free(queueElement);
-	}
 
 	pthread_mutex_lock(&mutex);
-
 	add_to_queue(queue, conn_fd);
-
-	// On libère le lock et on signale qu'il y a une nouvelle connection à traiter
 	pthread_mutex_unlock(&mutex);
+	// On libère le lock et on signale qu'il y a une nouvelle connection à traiter
+
 	sem_post(full);
 }
 
@@ -175,25 +173,16 @@ void *master_thread_function(void *main_thread_argumentsVoid)
 
 	Queue *queue = initialiser();
 
-	// pthread_t threads_pool[threads];
-
-	struct worker_thread_arguments arguments;
-
-	arguments.queue = queue;
-
-	// pthread_mutex_lock(&mutex);
-
 	for (int i = 0; i < threads; i++)
 	{
 		pthread_t worker_thread;
-		pthread_create(&worker_thread, NULL, worker_thread_function, (void *)&arguments);
+		pthread_create(&worker_thread, NULL, worker_thread_function, (void *)queue);
 	}
-	// pthread_mutex_unlock(&mutex);
 
 	while (1)
 	{
 		// On ajoute la nouvelle connection à la fin du buffer (FIFO)
-		create_connection(root_dir, port, listen_fd, (void *)&arguments);
+		create_connection(root_dir, port, listen_fd, queue);
 	}
 
 	return NULL;
