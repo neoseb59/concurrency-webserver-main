@@ -42,24 +42,6 @@ struct worker_thread_arguments
 	Queue *queue;
 };
 
-void afficherFile(Queue *queue)
-{
-	if (queue == NULL)
-	{
-		exit(EXIT_FAILURE);
-	}
-
-	Connection *first = queue->first;
-
-	while (first != NULL)
-	{
-		printf("%d ", first->connection_id);
-		first = first->next;
-	}
-
-	printf("\n");
-}
-
 void add_to_queue(Queue *queue, int newConnection)
 {
 	Connection *new = malloc(sizeof(*new)); // Alloue un espace mémoire qui servira à stocker la nouvelle connection avant de l'ajouter à la queue
