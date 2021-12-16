@@ -53,7 +53,6 @@ void add_to_queue(Queue *queue, int newConnection)
 	new->connection_id = newConnection;
 	new->next = NULL;
 
-	afficherFile(queue);
 	printf("empty : %d\n", queue->first == NULL);
 
 	if (queue->first != NULL) /* La queue n'est pas vide */
@@ -70,7 +69,6 @@ void add_to_queue(Queue *queue, int newConnection)
 	{
 		queue->first = new;
 	}
-	afficherFile(queue);
 }
 
 int dequeue(Queue *queue)
@@ -106,7 +104,6 @@ void *worker_thread_function(void *queueVoid)
 		sem_wait(full);
 
 		printf("start work\n");
-		afficherFile(queue);
 		// On récupère la première connection ajoutée (FIFO) et on la traite
 		pthread_mutex_lock(&mutex);
 		int conn_fd = dequeue(queue);

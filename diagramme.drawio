@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="ZZ86x_CATwEXQEdTxJgp" name="diagramme_main_algo">
-        <mxGraphModel dx="1143" dy="1036" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+        <mxGraphModel dx="1143" dy="741" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
             <root>
                 <mxCell id="_tmstDa1uL1WL1FxBdm2-0"/>
                 <mxCell id="_tmstDa1uL1WL1FxBdm2-1" parent="_tmstDa1uL1WL1FxBdm2-0"/>
@@ -25,7 +25,7 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="_tmstDa1uL1WL1FxBdm2-10" value="Création du pool de worker" style="whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="_tmstDa1uL1WL1FxBdm2-1">
+                <mxCell id="_tmstDa1uL1WL1FxBdm2-10" value="Création du pool de worker et du buffer" style="whiteSpace=wrap;html=1;rounded=0;" vertex="1" parent="_tmstDa1uL1WL1FxBdm2-1">
                     <mxGeometry x="269.5" y="465" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="_tmstDa1uL1WL1FxBdm2-17" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=classic;endFill=1;" edge="1" parent="_tmstDa1uL1WL1FxBdm2-1" source="_tmstDa1uL1WL1FxBdm2-12" target="_tmstDa1uL1WL1FxBdm2-14">
@@ -98,13 +98,13 @@
                 <mxCell id="_tmstDa1uL1WL1FxBdm2-31" value="" style="edgeStyle=none;html=1;endArrow=classic;endFill=1;" edge="1" parent="_tmstDa1uL1WL1FxBdm2-1" source="_tmstDa1uL1WL1FxBdm2-28" target="_tmstDa1uL1WL1FxBdm2-30">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="_tmstDa1uL1WL1FxBdm2-28" value="Récupère le numéreau de protection avec le mutex" style="whiteSpace=wrap;html=1;" vertex="1" parent="_tmstDa1uL1WL1FxBdm2-1">
+                <mxCell id="_tmstDa1uL1WL1FxBdm2-28" value="Récupère le numéro de connexion avec le mutex" style="whiteSpace=wrap;html=1;" vertex="1" parent="_tmstDa1uL1WL1FxBdm2-1">
                     <mxGeometry x="550" y="550" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="_tmstDa1uL1WL1FxBdm2-33" value="" style="edgeStyle=none;html=1;endArrow=classic;endFill=1;" edge="1" parent="_tmstDa1uL1WL1FxBdm2-1" source="_tmstDa1uL1WL1FxBdm2-30" target="_tmstDa1uL1WL1FxBdm2-32">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="_tmstDa1uL1WL1FxBdm2-30" value="Traite la connection" style="whiteSpace=wrap;html=1;" vertex="1" parent="_tmstDa1uL1WL1FxBdm2-1">
+                <mxCell id="_tmstDa1uL1WL1FxBdm2-30" value="Traite la connexion" style="whiteSpace=wrap;html=1;" vertex="1" parent="_tmstDa1uL1WL1FxBdm2-1">
                     <mxGeometry x="550" y="690" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="_tmstDa1uL1WL1FxBdm2-34" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;endArrow=classic;endFill=1;" edge="1" parent="_tmstDa1uL1WL1FxBdm2-1" source="_tmstDa1uL1WL1FxBdm2-32">
@@ -116,7 +116,7 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="_tmstDa1uL1WL1FxBdm2-32" value="Ferme la connection et modifie les sémaphores" style="whiteSpace=wrap;html=1;" vertex="1" parent="_tmstDa1uL1WL1FxBdm2-1">
+                <mxCell id="_tmstDa1uL1WL1FxBdm2-32" value="Ferme la connexion et modifie les sémaphores" style="whiteSpace=wrap;html=1;" vertex="1" parent="_tmstDa1uL1WL1FxBdm2-1">
                     <mxGeometry x="550" y="830" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="_tmstDa1uL1WL1FxBdm2-35" value="main" style="swimlane;" vertex="1" parent="_tmstDa1uL1WL1FxBdm2-1">
@@ -143,7 +143,7 @@
                 <mxCell id="_tmstDa1uL1WL1FxBdm2-38" value="Pour chaque worker thread" style="swimlane;" vertex="1" parent="_tmstDa1uL1WL1FxBdm2-1">
                     <mxGeometry x="500" y="160" width="230" height="790" as="geometry"/>
                 </mxCell>
-                <mxCell id="_tmstDa1uL1WL1FxBdm2-39" value="Main thread" style="swimlane;" vertex="1" parent="_tmstDa1uL1WL1FxBdm2-1">
+                <mxCell id="_tmstDa1uL1WL1FxBdm2-39" value="Master thread" style="swimlane;" vertex="1" parent="_tmstDa1uL1WL1FxBdm2-1">
                     <mxGeometry x="199.5" y="410" width="260" height="520" as="geometry"/>
                 </mxCell>
             </root>
